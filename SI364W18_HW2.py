@@ -38,7 +38,7 @@ app.config['SECRET_KEY'] = 'hardtoguessstring'
 
 class AlbumEntryForm(FlaskForm):
 	albumname = StringField('Enter the name of an album:', validators= [Required()])
-	like= RadioField('How much do you like this album? (1 low, 3 high)', choices=[(1,'1'),(2,'2'),(3,'3')], validators= [Required()])
+	like= RadioField('How much do you like this album? (1 low, 3 high)', choices=[('1','1'),('2','2'),('3','3')], validators= [Required()])
 	submit= SubmitField()
 
 
@@ -57,12 +57,17 @@ def artist_form():
 	artist=request.args.get('artist')
 	return render_template('artistform.html', artist=artist)
 
-@app.route('/artistinfo')
+@app.route('/artistinfo', methods= ['GET'])
 def artist_info():
-	params_dict= {'term': request.args.get('artist')}
-	result = requests.get('https://itunes.apple.com/search', params = params_dict)
-	obj = json.loads(result.text)['results']
-	return render_template('artist_info.html', objects= obj)
+	if request.method == 'GET':
+		artist= request.args.get('artist')
+		url= 'https://itunes.apple.com/search'
+		params_dict= {'term': artist}
+		result = requests.get(url, params = params_dict)
+		obj = json.loads(result.text)['results']
+		return render_template('artist_info.html', objects= obj)
+	flash('All fields are required!')
+	return redirect(url_for(artist_form))
 
 @app.route('/artistlinks')
 def artist_links():	
